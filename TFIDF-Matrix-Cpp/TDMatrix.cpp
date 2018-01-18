@@ -13,7 +13,37 @@ TDMatrix::TDMatrix(const std::string& strPath)
     }
 }
 
-int TDMatrix::GetFileIndex(const std::string& strFileName)
+void TDMatrix::ConvertToTFIDF()
+{
+    const float docCount = static_cast<float>(this->vecFileList.size());
+
+    
+    /* Loop to calculate and insert weighted counters */
+    for (auto& it : this->mapMatrixData)
+    {
+        float iCounter = 0;
+        std::vector<float> vecWeight;
+        for (auto vecIter : it.second)
+        {
+            if (vecIter > 0)
+                ++iCounter;
+
+            vecWeight.push_back(vecIter);
+        }
+
+        if (iCounter != 0)
+        {
+            for (auto& vecIter : vecWeight)
+                vecIter *= std::log2f(docCount / iCounter);
+
+            for (std::size_t vecIter = 0; vecIter < it.second.size(); ++vecIter)
+                it.second.at(vecIter) *= vecWeight.at(vecIter);
+        }
+    }
+
+}
+
+std::size_t TDMatrix::GetFileIndex(const std::string& strFileName)
 {
     const auto it = std::find(this->vecFileList.begin(), this->vecFileList.end(), strFileName);
     if (it == this->vecFileList.end())
@@ -51,7 +81,7 @@ void TDMatrix::AddToMatrix(const filesystem::directory_entry& fsDirectoryEntry)
 
     this->vecFileList.push_back(strFileName);
 
-    /* Column in which our file is located in the vector. -1  */
+    /* Column in which our file is located in the vector. -1 because we are checking end index */
     const std::size_t iColumn = std::distance(vecFileList.begin(), vecFileList.end()) - 1;
 
     if (this->mapMatrixData.empty())
@@ -68,12 +98,12 @@ void TDMatrix::AddToMatrix(const filesystem::directory_entry& fsDirectoryEntry)
             if (matrixIterator == this->mapMatrixData.end())
             {
                 std::vector<float> vecTmp(iColumn);
-                vecTmp[iColumn - 1] = it.second;
+                vecTmp[iColumn - 1] = static_cast<float>(it.second);
 
                 this->mapMatrixData.emplace(it.first, vecTmp);
             }
             else
-                matrixIterator->second.push_back(it.second);
+                matrixIterator->second.push_back(static_cast<const float>(it.second));
         }
     }
 

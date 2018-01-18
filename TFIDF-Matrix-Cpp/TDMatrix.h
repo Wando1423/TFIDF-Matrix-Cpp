@@ -11,8 +11,8 @@ public:
     TDMatrix(const std::string& vecFileNames);
     ~TDMatrix() = default;
 
-    void ConvertToTFIDF();
-    int  GetFileIndex(const std::string& strFileName);
+    void        ConvertToTFIDF();
+    std::size_t GetFileIndex(const std::string& strFileName);
 
 private:
     void AddToMatrix(const filesystem::directory_entry& fsDirectoryEntry);

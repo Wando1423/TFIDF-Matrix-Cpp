@@ -11,7 +11,7 @@ int main()
     strPath = "C:\\testdir";
 
     auto matrix = std::make_unique<TDMatrix>(strPath);
-
+    matrix->ConvertToTFIDF();
     system("pause");
     return 0;
 }
