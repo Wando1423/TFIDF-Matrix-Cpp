@@ -8,10 +8,20 @@ int main()
     std::string strPath{};
     std::string strSearchString{};
     std::cout << "Enter the directory path: " << std::endl;
-    std::getline(std::cin, strPath);
+
+    bool isError = true;
+    do
+    {
+        std::getline(std::cin, strPath);
+        if (filesystem::is_directory(strPath))
+            break;
+
+        std::cout << "Incorrect directory." << std::endl;
+    } while (true);
 
     auto matrix = std::make_unique<TDMatrix>(strPath);
     matrix->ConvertToTFIDF();
+
     std::cout << "Enter the string you want to compare. If you wish to end the application, write 'end'" << std::endl;
     while (true)
     {
@@ -27,6 +37,7 @@ int main()
             std::cout << place << ": " << it << std::endl;
             ++place;
         }
+
         strSearchString = "";
     }
     system("pause");
