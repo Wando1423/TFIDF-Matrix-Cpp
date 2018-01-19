@@ -24,8 +24,8 @@ void TDMatrix::ConvertToTFIDF(std::map<std::string, std::vector<float>>* mapToCh
     if (!mapToChange)
     {
         this->bIsTFIDF = true;
-        docCount = static_cast<float>(this->vecFileList.size());
-        mapTemp = &this->mapMatrixData;
+        docCount       = static_cast<float>(this->vecFileList.size());
+        mapTemp        = &this->mapMatrixData;
     }
     else
         mapTemp = mapToChange;
@@ -33,7 +33,7 @@ void TDMatrix::ConvertToTFIDF(std::map<std::string, std::vector<float>>* mapToCh
     /* Loop to calculate and insert weighted counters */
     for (auto& it : *mapTemp)
     {
-        static float iCounter = 0;
+        static float       iCounter = 0;
         std::vector<float> vecWeight;
         for (auto vecIter : it.second)
         {
@@ -52,7 +52,6 @@ void TDMatrix::ConvertToTFIDF(std::map<std::string, std::vector<float>>* mapToCh
                 it.second.at(vecIter) *= vecWeight.at(vecIter);
         }
     }
-
 }
 
 
@@ -72,9 +71,9 @@ std::string TDMatrix::GetMostSimmilarFile(const std::string& strCompared)
     this->CalculateCosineSimilarity(strCompared, &vecSimilarities);
 
     if (vecSimilarities.size() == 1u)
-        return this->vecFileList.at(1);
+        return this->vecFileList.at(0);
 
-    auto flBiggestValue = 0.f;
+    auto        flBiggestValue = 0.f;
     std::size_t idxClosestFile = 0u;
 
     for (std::size_t it = 0; it < vecSimilarities.size(); ++it)
@@ -97,11 +96,11 @@ std::vector<std::string> TDMatrix::GetFileSimmRanking(const std::string& strComp
     auto vecSorted = vecSimilarities;
     std::sort(vecSorted.rbegin(), vecSorted.rend());
 
-    std::vector<std::string> vecResult{};
+    std::vector<std::string> vecResult { };
     for (const auto& it : vecSorted)
     {
-        const auto foundVal = std::find(vecSimilarities.begin(), vecSimilarities.end(), it);
-        const auto dist = std::distance(vecSimilarities.begin(), foundVal);
+        const auto foundVal      = std::find(vecSimilarities.begin(), vecSimilarities.end(), it);
+        const auto dist          = std::distance(vecSimilarities.begin(), foundVal);
         vecSimilarities.at(dist) = -1;
         vecResult.push_back(this->vecFileList.at(dist));
     }
@@ -112,23 +111,23 @@ std::vector<std::string> TDMatrix::GetFileSimmRanking(const std::string& strComp
 void TDMatrix::AddToMatrix(const filesystem::directory_entry& fsDirectoryEntry)
 {
     const auto    strFileName(fsDirectoryEntry.path().filename().string());
-    std::ifstream file       (fsDirectoryEntry.path(), std::ios_base::binary);
+    std::ifstream file(fsDirectoryEntry.path(), std::ios_base::binary);
     
     /* Double bracket so its not declared as a function */
     std::istringstream issFileContent(std::string(std::istreambuf_iterator<char>(file),
                                                   (std::istreambuf_iterator<char>())));
 
 
-    std::string strTmp{};                                         /* Temporary string holding one word                 */
-    std::vector<std::pair<std::string, int>> vecWorldEntries{};   /* Temporary vector holding words and their counters */
+    std::string strTmp { };                                         /* Temporary string holding one word                 */
+    std::vector<std::pair<std::string, int>> vecWorldEntries { };   /* Temporary vector holding words and their counters */
     while (issFileContent >> strTmp)
     {
         /* Convert to lower case and remove punctuaction */
         std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), ::tolower);
         std::remove_if(strTmp.begin(), strTmp.end(), [](char ch) { return ispunct(static_cast<unsigned char>(ch)); });
 
-        const auto it = std::find_if(vecWorldEntries.begin(), vecWorldEntries.end(),
-                                     [strTmp](const std::pair<std::string, int>& element){ return element.first == strTmp; });
+        const auto  it = std::find_if(vecWorldEntries.begin(), vecWorldEntries.end(),
+                                      [strTmp](const std::pair<std::string, int>& element) { return element.first == strTmp; });
 
         if (it == vecWorldEntries.end())
             vecWorldEntries.emplace_back(std::make_pair(strTmp, 1));
@@ -175,9 +174,9 @@ void TDMatrix::AddToMatrix(const filesystem::directory_entry& fsDirectoryEntry)
 void TDMatrix::CalculateCosineSimilarity(const std::string& strEntry, std::vector<float>* vecOutput)
 {
     std::istringstream issStringContent(strEntry);
-    std::string strTmp;
+    std::string        strTmp { };
 
-    std::map<std::string, std::vector<float>> mapEntryData{};
+    std::map<std::string, std::vector<float>> mapEntryData { };
     while (issStringContent >> strTmp)
     {
         /* Convert to lower case and remove punctuaction */
@@ -196,8 +195,11 @@ void TDMatrix::CalculateCosineSimilarity(const std::string& strEntry, std::vecto
     if (this->bIsTFIDF)
         this->ConvertToTFIDF(&mapEntryData);
 
-    /* Add and fill used word list */
-    std::vector<std::string> vecWordList{};
+
+    std::vector<std::string> vecWordList;
+    /* Disable multiple memory reallocations */
+    vecWordList.reserve(mapEntryData.size());
+
     for (const auto& it : mapEntryData)
         vecWordList.push_back(it.first);
 
@@ -217,6 +219,7 @@ void TDMatrix::CalculateCosineSimilarity(const std::string& strEntry, std::vecto
                 auto find = mapPtr->find(it);
                 if (find != mapPtr->end())
                     return find->second.at(bIsStringA ? 0 : idx);
+
                 return 0.f;
             };
 
@@ -229,9 +232,12 @@ void TDMatrix::CalculateCosineSimilarity(const std::string& strEntry, std::vecto
         }
         if (flSumAPow && flSumBPow)
             return flMultiply / (std::sqrtf(flSumAPow) * std::sqrtf(flSumBPow));
-        else return 0;
+        else
+            return 0;
     };
 
+
+    vecOutput->reserve(this->vecFileList.size());
     for (std::size_t it = 0; it < this->vecFileList.size(); ++it)
         vecOutput->push_back(cosineSimilarity(it));
 }

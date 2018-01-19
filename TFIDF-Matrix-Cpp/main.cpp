@@ -5,11 +5,10 @@
 
 int main()
 {
-    std::string strPath{};
-    std::string strSearchString{};
+    std::string strPath { };
+    std::string strSearchString { };
     std::cout << "Enter the directory path: " << std::endl;
 
-    bool isError = true;
     do
     {
         std::getline(std::cin, strPath);
@@ -30,7 +29,7 @@ int main()
             break;
 
         auto place = 1;
-        auto vec = matrix->GetFileSimmRanking(strSearchString);
+        auto vec   = matrix->GetFileSimmRanking(strSearchString);
         std::cout << "Simmilarity ranking: " << std::endl;
         for (const auto& it : vec)
         {
@@ -40,6 +39,7 @@ int main()
 
         strSearchString = "";
     }
+
     system("pause");
     return 0;
 }
