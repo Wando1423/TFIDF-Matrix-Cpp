@@ -76,6 +76,7 @@ std::string TDMatrix::GetMostSimmilarFile(const std::string& strCompared)
     auto        flBiggestValue = 0.f;
     std::size_t idxClosestFile = 0u;
 
+
     for (std::size_t it = 0; it < vecSimilarities.size(); ++it)
     {
         if (vecSimilarities.at(it) > flBiggestValue)
@@ -96,6 +97,7 @@ std::vector<std::string> TDMatrix::GetFileSimmRanking(const std::string& strComp
     auto vecSorted = vecSimilarities;
     std::sort(vecSorted.rbegin(), vecSorted.rend());
 
+
     std::vector<std::string> vecResult { };
     for (const auto& it : vecSorted)
     {
@@ -113,14 +115,15 @@ void TDMatrix::AddToMatrix(const filesystem::directory_entry& fsDirectoryEntry)
     const auto    strFileName(fsDirectoryEntry.path().filename().string());
     std::ifstream file(fsDirectoryEntry.path(), std::ios_base::binary);
     
-    /* Double bracket so its not declared as a function */
-    std::istringstream issFileContent(std::string(std::istreambuf_iterator<char>(file),
-                                                  (std::istreambuf_iterator<char>())));
+
+    /* Read file content */
+    std::stringstream ssFileContent{ };
+    ssFileContent << file.rdbuf();
 
 
     std::string strTmp { };                                         /* Temporary string holding one word                 */
     std::vector<std::pair<std::string, int>> vecWorldEntries { };   /* Temporary vector holding words and their counters */
-    while (issFileContent >> strTmp)
+    while (ssFileContent >> strTmp)
     {
         /* Convert to lower case and remove punctuaction */
         std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), ::tolower);
@@ -135,11 +138,13 @@ void TDMatrix::AddToMatrix(const filesystem::directory_entry& fsDirectoryEntry)
             ++it->second;
     }
 
+
     /* Add our file to file list vector to keep the proper index saved. */
     this->vecFileList.push_back(strFileName);
 
     /* Column in which our file is located in the vector. -1 because we are checking end index */
     const std::size_t iColumn = std::distance(vecFileList.begin(), vecFileList.end()) - 1;
+
 
     if (this->mapMatrixData.empty())
     {
