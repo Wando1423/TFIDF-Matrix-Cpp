@@ -6,7 +6,7 @@ Implementation of file-similarity check using TFIDF.
 
 ### How it's done
 
-Using TM matrix built upon .txt files in the specified directory, each word in the texts is given a specific weight and calculated value for every file.
+Creates Term-Document Matrix built upon .txt files in the specified directory. Then each word in the texts has calculateda specific weight and value for every file.
 
 ### Using the project
 
