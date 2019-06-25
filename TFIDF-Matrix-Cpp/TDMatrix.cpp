@@ -197,7 +197,7 @@ void TDMatrix::CalculateCosineSimilarity(const std::string& strEntry, std::vecto
     }
 
     /* Convert our TF martix into TFIDF format*/
-    if (this->bIsTFIDF)
+    if (!this->bIsTFIDF)
         this->ConvertToTFIDF(&mapEntryData);
 
 
